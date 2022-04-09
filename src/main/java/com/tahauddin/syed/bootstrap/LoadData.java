@@ -2,6 +2,7 @@ package com.tahauddin.syed.bootstrap;
 
 import com.tahauddin.syed.domain.MyRole;
 import com.tahauddin.syed.domain.MyUser;
+import com.tahauddin.syed.repo.MyUserRepository;
 import com.tahauddin.syed.service.MyUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -14,10 +15,14 @@ import java.util.ArrayList;
 public class LoadData implements CommandLineRunner {
 
     private final MyUserService myUserService;
+    private final MyUserRepository myUserRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        saveMyUsers();
+
+        if(myUserRepository.count() == 0){
+            saveMyUsers();
+        }
     }
 
     private void saveMyUsers() {
