@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -31,15 +32,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        CustomAuthenticationFilter authenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        authenticationFilter.setFilterProcessesUrl("/api/login");
         http.csrf().disable().sessionManagement().sessionCreationPolicy(STATELESS).and()
                 .authorizeRequests().antMatchers(GET, "/api/v1/myUser/getAll")
                     .permitAll()
+                .antMatchers("/api/login/**").permitAll()
                 .antMatchers(POST, "/api/v1/myUser/save/**")
                     .hasAnyAuthority("ROLE_MANAGER", "ROLE_SUPER_ADMIN", "ROLE_ADMIN")
                 .antMatchers(POST, "/api/v1/myUser/add/role/to/user")
                     .hasAnyAuthority("ROLE_MANAGER", "ROLE_SUPER_ADMIN")
                 .anyRequest().authenticated();
-        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
+        http.addFilter(authenticationFilter);
+        http.addFilterAfter(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
